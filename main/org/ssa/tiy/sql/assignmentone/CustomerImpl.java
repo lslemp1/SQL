@@ -17,6 +17,7 @@ public class CustomerImpl implements CustomerDAO  {
     public String last;
     Connection connection;
     DataSource datasource;
+    CustomerORM orm;
     
     public CustomerImpl(DataSource datasource)
     {
@@ -29,7 +30,7 @@ public class CustomerImpl implements CustomerDAO  {
         PreparedStatement prepareStatement;
         try {
             Connection connection = datasource.getConnection();
-            prepareStatement = connection.prepareStatement("INSERT INTO customers(first, last) VALUES(?, ?)", Statement.RETURN_GENERATED_KEYS);
+            prepareStatement = connection.prepareStatement(orm.prepareInsert(), Statement.RETURN_GENERATED_KEYS);
             prepareStatement.setString(1, customer.getFirst());
             prepareStatement.setString(2, customer.getLast());
             prepareStatement.executeUpdate();
@@ -52,8 +53,8 @@ public class CustomerImpl implements CustomerDAO  {
             Connection connection = datasource.getConnection();
             prepareStatement = connection.prepareStatement("DELETE FROM customers WHERE id = ?");
             prepareStatement.setInt(1, toDelete.getId());
-            prepareStatement.executeUpdate();
-            return true;
+            //prepareStatement.executeUpdate();
+            return prepareStatement.executeUpdate()>0;
         } catch (SQLException e) {
             System.err.println("customer does not exist");
             return false;
@@ -70,7 +71,7 @@ public class CustomerImpl implements CustomerDAO  {
             prepareStatement.setString(2, customer.getLast());
             prepareStatement.setInt(3, customer.getId());
             prepareStatement.executeUpdate();
-            return read(customer.getId());
+            return new Customer(customer.getFirst(), customer.getLast());
         } catch (SQLException e) {
             System.err.println("Cannot update customer.");
             return null;
@@ -86,15 +87,28 @@ public class CustomerImpl implements CustomerDAO  {
             prepareStatement.setInt(1, id);
             ResultSet results = prepareStatement.executeQuery();
             results.next();
-            Customer customer = new Customer();
+            
+            Customer customer = new Customer(results.getString(2), results.getString(3));
             customer.setId(results.getInt(1));
-            customer.setFirst(results.getString(2));
-            customer.setLast(results.getString(3));
-            return customer;            
+            return customer;
+            
         } catch (SQLException e) {
-            System.err.println("Customer does not exist.");
+            //System.err.println("Customer does not exist.");
             return null;
         }
+    }
+
+    @Override
+    public int clear() {
+        PreparedStatement prepareStatement;
+        try{
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement("DELETE FROM customers");
+            return prepareStatement.executeUpdate();
+        } catch (SQLException e) {
+            return 0;
+        }
+        
     }
     
 //    @Override

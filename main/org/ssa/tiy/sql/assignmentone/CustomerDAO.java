@@ -73,12 +73,12 @@ public interface CustomerDAO {
 //
 //    */
 //   List<Customer> readLastName(String lastName);
-//
-//   /**
-//    * removes all customers from persistent storage
-//    * @return the number of customers removed or 0 if none
-//    */
-//   int clear();
+
+   /**
+    * removes all customers from persistent storage
+    * @return the number of customers removed or 0 if none
+    */
+   int clear();
 
 }
 

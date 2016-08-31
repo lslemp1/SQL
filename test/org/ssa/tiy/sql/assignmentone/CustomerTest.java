@@ -16,10 +16,9 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 
 public class CustomerTest {
     
-    static String URL = "jdbc:mysql://localhost/ssa_bank?" + "user=root&password=root";
+    static String URL = "jdbc:mysql://localhost/ssa_bank?" + "user=root&password=root"; //"profileSQL=true&useServerPrepStmts=true";
     DataSource datasource;
-    Connection connection;
-    CustomerImpl customer;    
+    CustomerDAO customer;    
     
     Customer c1 = new Customer("John", "Doe");
     Customer c2 = new Customer("Bob", "Jones");
@@ -30,15 +29,9 @@ public class CustomerTest {
     {
         MysqlDataSource mysqlDataSource = new MysqlDataSource();
         mysqlDataSource.setUrl(URL);
-        Connection connection = mysqlDataSource.getConnection();
         this.datasource = mysqlDataSource;
-        this.connection = connection;
-        customer = new CustomerImpl(datasource);
-    }
-    
-    @After
-    public void teardown() throws SQLException {
-        this.connection.close();
+        this.customer = new CustomerImpl(datasource);
+        this.customer.clear();
     }
     
     @Test
@@ -47,22 +40,27 @@ public class CustomerTest {
         Customer a = customer.insert(c1);
         Customer b = customer.insert(c2);
         Customer c = customer.insert(c3);
-        assertEquals("", "John", a.getFirst());
-        assertEquals("", "Jones", b.getLast());     
-        assertEquals("", "Manning", c.getLast());     
+        assertTrue(a.getId() > 0);
+        assertTrue(b.getId() > 0);
+        assertTrue(c.getId() > 0);  
+        assertEquals("", "Manning", c.getLast()); 
+        assertTrue(c.equals(customer.read(c.getId())));
     }
     
     @Test
     public void read()
     {
         Customer a = customer.insert(c1);
+        customer.read(a.getId());
+        customer.delete(a);
+        assertTrue(customer.read(a.getId()) == null);
 //        Customer b = customer.insert(c2);
 //        Customer c = customer.insert(c3);
 //        List<Customer> list = customer.read();
 //        assertTrue(list.contains(a));
 //        assertTrue(list.contains(b));
 //        assertTrue(list.contains(c));
-        System.out.println(customer.read(a.getId()));
+//        System.out.println(customer.read(a.getId()));
     }
    
     @Test
@@ -79,9 +77,14 @@ public class CustomerTest {
     {
         Customer a = customer.insert(c1);
         Customer b = customer.insert(c2);
-        customer.delete(a);
-        customer.delete(b);
+        
+        assertTrue(customer.delete(a));
+        assertTrue(customer.delete(b));
+        
         assertTrue(customer.read(a.getId()) == null);
         assertTrue(customer.read(b.getId()) == null);
+        
+        assertFalse(customer.delete(a));
+        assertFalse(customer.delete(b));
     }
 }
