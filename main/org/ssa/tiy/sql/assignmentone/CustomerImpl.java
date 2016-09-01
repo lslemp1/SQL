@@ -5,16 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.sql.DataSource;
 
 public class CustomerImpl implements CustomerDAO  {
 
-    public int id;
-    public String first;
-    public String last;
     Connection connection;
     DataSource datasource;
     CustomerORM orm;
@@ -22,6 +16,8 @@ public class CustomerImpl implements CustomerDAO  {
     public CustomerImpl(DataSource datasource)
     {
         this.datasource = datasource;
+        orm = new CustomerORM() {
+    };
     }
 
     @Override
@@ -51,7 +47,7 @@ public class CustomerImpl implements CustomerDAO  {
         PreparedStatement prepareStatement;
         try {
             Connection connection = datasource.getConnection();
-            prepareStatement = connection.prepareStatement("DELETE FROM customers WHERE id = ?");
+            prepareStatement = connection.prepareStatement(orm.prepareDelete());
             prepareStatement.setInt(1, toDelete.getId());
             //prepareStatement.executeUpdate();
             return prepareStatement.executeUpdate()>0;
@@ -66,7 +62,7 @@ public class CustomerImpl implements CustomerDAO  {
         PreparedStatement prepareStatement;
         try {
             Connection connection = datasource.getConnection();
-            prepareStatement = connection.prepareStatement("UPDATE customers SET first = ?, last = ? WHERE id = ?");
+            prepareStatement = connection.prepareStatement(orm.prepareUpdate());
             prepareStatement.setString(1, customer.getFirst());
             prepareStatement.setString(2, customer.getLast());
             prepareStatement.setInt(3, customer.getId());
@@ -83,7 +79,7 @@ public class CustomerImpl implements CustomerDAO  {
         PreparedStatement prepareStatement;
         try {
             Connection connection = datasource.getConnection();
-            prepareStatement = connection.prepareStatement("SELECT * FROM customers WHERE id = ?");
+            prepareStatement = connection.prepareStatement(orm.prepareRead());
             prepareStatement.setInt(1, id);
             ResultSet results = prepareStatement.executeQuery();
             results.next();
@@ -120,7 +116,7 @@ public class CustomerImpl implements CustomerDAO  {
 //        prepareStatement = connection.prepareStatement("SELECT * FROM customers");
 //        ResultSet results = prepareStatement.executeQuery();
 //        while (results.next()) {
-//        Customer c1 = new Customer(results.getInt(1), results.getString(2), results.getString(3));
+//        Customer c1 = orm.map(results);
 //        customers.add(c1);
 //        }
 //        connection.close();

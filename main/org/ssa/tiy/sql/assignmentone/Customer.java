@@ -13,6 +13,13 @@ public class Customer {
         this.last = last;
     }
     
+    public Customer(int id, String first, String last)
+    {
+        this.id = id;
+        this.first = first;
+        this.last = last;
+    }
+    
     public Customer()
     {
       
@@ -26,7 +33,7 @@ public class Customer {
         return id;
     }
     
-    void setFirst(String first) {
+    public void setFirst(String first) {
         this.first = first;
     }
     
@@ -34,7 +41,7 @@ public class Customer {
         return first;
     }
     
-    void setLast(String last) {
+    public void setLast(String last) {
         this.last = last;
     }
     
