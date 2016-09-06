@@ -9,12 +9,16 @@ import javax.sql.DataSource;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.ssa.tiy.sql.assignmentone.Customer;
-import org.ssa.tiy.sql.assignmentone.CustomerDAO;
-import org.ssa.tiy.sql.assignmentone.CustomerImpl;
-import org.ssa.tiy.sql.assignmenttwo.Account.Type;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
+
+import dao.AccountImpl;
+import dao.AccountORM;
+import dao.CustomerDAO;
+import dao.CustomerImpl;
+import model.Account;
+import model.Customer;
+import model.Account.Type;
 
 public class AccountDAOTest {
 
@@ -23,7 +27,7 @@ public class AccountDAOTest {
     CustomerDAO customer;
     AccountImpl account;
 
-    Customer c1 = new Customer(1, "John", "Doe");
+    Customer c1 = new Customer(1, "John", "Doe", false);
     Account a1 = new Account(c1, Type.SA, BigDecimal.valueOf(-5000));
     Account a2 = new Account(c1, Type.CH, BigDecimal.valueOf(7000));
 
@@ -48,6 +52,7 @@ public class AccountDAOTest {
         assertTrue(a.getId() != 0);
         assertTrue(a.getBalance().equals(a2.getBalance()));
         assertTrue(a.getType().equals(a2.getType()));
+        assertTrue(a.deeplyEquals(account.read(a.getId())));
     }
 
     @Test
@@ -57,10 +62,15 @@ public class AccountDAOTest {
         
         assertTrue(a.getType().equals(account.read(a.getId()).getType()));
         assertTrue(a.getBalance().compareTo(account.read(a.getId()).getBalance()) == 0);
-        assertTrue(a.getId() == account.read(a.getId()).getId());
+//        assertTrue(a.getId() == account.read(a.getId()).getId());
 
-        account.delete(a.getId());
-        assertTrue(account.read(a.getId()) == null);
+//        Customer customer = account.read(a.getId()).getCust();
+//        assertTrue(customer.isLoaded());
+//        assertNotNull("assumed first is defined as not null in the customers DDL", customer.getFirst());
+//        assertNotNull("assumed last is defined as not null in the customers DDL", customer.getLast());
+//        
+//        account.delete(a.getId());
+//        assertTrue(account.read(a.getId()) == null);
     }
 
     @Test
@@ -74,6 +84,7 @@ public class AccountDAOTest {
 
         assertTrue(a.getBalance().equals(BigDecimal.valueOf(1000)));
         assertTrue(a.getType().equals(Type.CH));
+        assertTrue(a.deeplyEquals(account.read(a.getId())));
     }
 
     @Test
@@ -113,7 +124,7 @@ public class AccountDAOTest {
     public void testUnderwater() 
     {
         Account a3 = new Account(c1, Type.CH, BigDecimal.valueOf(-8000));
-        Account a = account.insert(a1);
+        account.insert(a1);
         account.insert(a2);
         account.insert(a3);
 

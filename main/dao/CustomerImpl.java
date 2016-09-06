@@ -1,0 +1,132 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.sql.DataSource;
+
+import model.Customer;
+
+public class CustomerImpl implements CustomerDAO  {
+
+    Connection connection;
+    DataSource datasource;
+    CustomerORM orm;
+    
+    public CustomerImpl(DataSource datasource)
+    {
+        this.datasource = datasource;
+        orm = new CustomerORM() {
+    };
+    }
+
+    @Override
+    public Customer insert(Customer customer)
+    {
+        PreparedStatement prepareStatement;
+        try {
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement(orm.prepareInsert(), Statement.RETURN_GENERATED_KEYS);
+            prepareStatement.setString(1, customer.getFirst());
+            prepareStatement.setString(2, customer.getLast());
+            prepareStatement.executeUpdate();
+            ResultSet generatedKeys = prepareStatement.getGeneratedKeys();
+            generatedKeys.next();
+            Customer cust = read(generatedKeys.getInt(1));            
+            System.err.println("inserted customer with id " + generatedKeys.getInt(1));
+            return cust;
+        } catch (SQLException e) {
+            System.err.println("Cannot insert customer.");
+            return null;
+        }
+        
+    }
+
+    @Override
+    public boolean delete(Customer toDelete) {
+        PreparedStatement prepareStatement;
+        try {
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement(orm.prepareDelete());
+            prepareStatement.setInt(1, toDelete.getId());
+            //prepareStatement.executeUpdate();
+            return prepareStatement.executeUpdate()>0;
+        } catch (SQLException e) {
+            System.err.println("customer does not exist");
+            return false;
+        }       
+    }
+
+    @Override
+    public Customer update(Customer customer) {
+        PreparedStatement prepareStatement;
+        try {
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement(orm.prepareUpdate());
+            prepareStatement.setString(1, customer.getFirst());
+            prepareStatement.setString(2, customer.getLast());
+            prepareStatement.setInt(3, customer.getId());
+            prepareStatement.executeUpdate();
+            return new Customer(customer.getFirst(), customer.getLast());
+        } catch (SQLException e) {
+            System.err.println("Cannot update customer.");
+            return null;
+        }        
+    }
+
+    @Override
+    public Customer read(int id) {
+        PreparedStatement prepareStatement;
+        try {
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement(orm.prepareRead());
+            prepareStatement.setInt(1, id);
+            ResultSet results = prepareStatement.executeQuery();
+            results.next();
+            
+            Customer customer = new Customer(results.getString(2), results.getString(3));
+            customer.setId(results.getInt(1));
+            return customer;
+            
+        } catch (SQLException e) {
+            //System.err.println("Customer does not exist.");
+            return null;
+        }
+    }
+
+    @Override
+    public int clear() {
+        PreparedStatement prepareStatement;
+        try{
+            Connection connection = datasource.getConnection();
+            prepareStatement = connection.prepareStatement("DELETE FROM customers");
+            return prepareStatement.executeUpdate();
+        } catch (SQLException e) {
+            return 0;
+        }
+        
+    }
+    
+//    @Override
+//    public List<Customer> read() {
+//        List<Customer> customers = new ArrayList<>();
+//        PreparedStatement prepareStatement;
+//    try {
+//        Connection connection = datasource.getConnection();
+//        prepareStatement = connection.prepareStatement("SELECT * FROM customers");
+//        ResultSet results = prepareStatement.executeQuery();
+//        while (results.next()) {
+//        Customer c1 = orm.map(results);
+//        customers.add(c1);
+//        }
+//        connection.close();
+//        return customers;
+//    } catch (SQLException e) {
+//        System.err.println("Error.");
+//        return null;
+//    }
+//
+//    }
+}

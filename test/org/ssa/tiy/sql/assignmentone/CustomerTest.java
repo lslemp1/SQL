@@ -14,6 +14,10 @@ import org.junit.Test;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 
+import dao.CustomerDAO;
+import dao.CustomerImpl;
+import model.Customer;
+
 public class CustomerTest {
     
     static String URL = "jdbc:mysql://localhost/ssa_bank?" + "user=root&password=root"; //"profileSQL=true&useServerPrepStmts=true";
